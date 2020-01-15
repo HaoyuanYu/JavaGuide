@@ -169,24 +169,18 @@ synchronized 是依赖于 JVM 实现的，前面我们也讲到了 虚拟机团�
 
 如果你想使用上述功能，那么选择ReentrantLock是一个不错的选择。
 
-wait（）： 
+**wait(), notify(), notifyAll()等方法介绍**
 
-public final void wait() throws InterruptedException 
+1.wait()的作用是让当前线程进入等待状态，同时，wait()也会让当前线程释放它所持有的锁。“直到其他线程调用此对象的 notify() 方法或 notifyAll() 方法”，当前线程被唤醒(进入“就绪状态”)
 
-在其他线程调用此对象的 notify() 方法或 notifyAll() 方法前，导致当前线程等待。换句话说，此方法的行为就好像它仅执行 wait(0) 调用一样。 
-当前线程必须拥有此对象监视器。该线程发布对此监视器的所有权并等待，直到其他线程通过调用 notify 方法，或 notifyAll 方法通知在此对象的监视器上等待的线程醒来。然后该线程将等到重新获得对监视器的所有权后才能继续执行。 
+2.notify()和notifyAll()的作用，则是唤醒当前对象上的等待线程；notify()是唤醒单个线程，而notifyAll()是唤醒所有的线程。
 
-对于某一个参数的版本，实现中断和虚假唤醒是可能的，而且此方法应始终在循环中使用： 
-```java
-synchronized (obj) { 
-while () 
-obj.wait(); 
-… // Perform action appropriate to condition 
-} 
-```
-此方法只应由作为此对象监视器的所有者的线程来调用。有关线程能够成为监视器所有者的方法的描述，请参阅 notify 方法。 
+3.wait(long timeout)让当前线程处于“等待(阻塞)状态”，“直到其他线程调用此对象的notify()方法或 notifyAll() 方法，或者超过指定的时间量”，当前线程被唤醒(进入“就绪状态”)。
 
-抛出： 
+调用wait()之后，在其他线程调用此对象的 notify() 方法或 notifyAll() 方法前，导致当前线程等待。换句话说，此方法的行为就好像它仅执行 wait(0) 调用一样。当前线程必须拥有此对象监视器。该线程发布对此监视器的所有权并等待，直到其他线程通过调用 notify 方法，或 notifyAll 方法通知在此对象的监视器上等待的线程醒来。然后该线程将等到重新获得对监视器的所有权后才能继续执行。 
+
+
+此方法只应由作为此对象监视器的所有者的线程来调用。否则抛出： 
 -IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。 
 -InterruptedException - 如果在当前线程等待通知之前或者正在等待通知时，任何线程中断了当前线程。在抛出此异常时，当前线程的 中断状态 被清除。 
 
@@ -203,6 +197,61 @@ public final void notify()
 一次只能有一个线程拥有对象的监视器。 
 抛出： 
 -IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。
+
+简单示例：
+```java
+class NotifyDemo {
+    public static void main(String[] args) {
+        //写两个线程 1.图片下载
+        Object obj=new Object();
+        Thread download=new Thread(){
+            public void run() {
+                System.out.println("开始下载图片");
+                for (int i = 0; i < 101; i+=10) {
+                    System.out.println("down"+i+"%");
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                System.out.println("图片下载成功");
+                synchronized (obj) {
+                    obj.notify();//唤起
+                }
+                System.out.println("开始下载附件");
+                for (int i = 0; i < 101; i+=10) {
+                    System.out.println("附件下载"+i+"%");
+
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                System.out.println("附件下载成功");
+            }
+        };
+        //2.图片展示
+        Thread show=new Thread(){
+            public void run(){
+                synchronized (obj) {
+                    try {
+                        obj.wait();//阻塞当前
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("show:开始展示图片");
+                    System.out.println("图片展示完毕");
+                }
+
+            }
+        };
+        download.start();
+        show.start();
+    }
+}
+```
 
 **④ 性能已不是选择标准**
 
