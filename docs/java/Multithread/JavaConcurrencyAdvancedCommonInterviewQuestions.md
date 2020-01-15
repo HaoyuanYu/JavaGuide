@@ -170,21 +170,30 @@ synchronized 是依赖于 JVM 实现的，前面我们也讲到了 虚拟机团�
 如果你想使用上述功能，那么选择ReentrantLock是一个不错的选择。
 
 wait（）： 
+
 public final void wait() throws InterruptedException 
+
 在其他线程调用此对象的 notify() 方法或 notifyAll() 方法前，导致当前线程等待。换句话说，此方法的行为就好像它仅执行 wait(0) 调用一样。 
 当前线程必须拥有此对象监视器。该线程发布对此监视器的所有权并等待，直到其他线程通过调用 notify 方法，或 notifyAll 方法通知在此对象的监视器上等待的线程醒来。然后该线程将等到重新获得对监视器的所有权后才能继续执行。 
+
 对于某一个参数的版本，实现中断和虚假唤醒是可能的，而且此方法应始终在循环中使用： 
+```java
 synchronized (obj) { 
 while () 
 obj.wait(); 
 … // Perform action appropriate to condition 
 } 
+```
 此方法只应由作为此对象监视器的所有者的线程来调用。有关线程能够成为监视器所有者的方法的描述，请参阅 notify 方法。 
+
 抛出： 
-IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。 
-InterruptedException - 如果在当前线程等待通知之前或者正在等待通知时，任何线程中断了当前线程。在抛出此异常时，当前线程的 中断状态 被清除。 
+-IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。 
+-InterruptedException - 如果在当前线程等待通知之前或者正在等待通知时，任何线程中断了当前线程。在抛出此异常时，当前线程的 中断状态 被清除。 
+
 notify（）： 
+
 public final void notify() 
+
 唤醒在此对象监视器上等待的单个线程。如果所有线程都在此对象上等待，则会选择唤醒其中一个线程。选择是任意性的，并在对实现做出决定时发生。线程通过调用其中一个 wait 方法，在对象的监视器上等待。 
 直到当前线程放弃此对象上的锁定，才能继续执行被唤醒的线程。被唤醒的线程将以常规方式与在该对象上主动同步的其他所有线程进行竞争；例如，唤醒的线程在作为锁定此对象的下一个线程方面没有可靠的特权或劣势。 
 此方法只应由作为此对象监视器的所有者的线程来调用。通过以下三种方法之一，线程可以成为此对象监视器的所有者： 
@@ -193,7 +202,7 @@ public final void notify()
 对于 Class 类型的对象，可以通过执行该类的同步静态方法。 
 一次只能有一个线程拥有对象的监视器。 
 抛出： 
-IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。
+-IllegalMonitorStateException - 如果当前线程不是此对象监视器的所有者。
 
 **④ 性能已不是选择标准**
 
